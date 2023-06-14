@@ -1,0 +1,35 @@
+public EmailValidationResponse getValidEmails(EmailValidationRequest request) {
+    EmailValidationResponse validatedEmails = new EmailValidationResponse();
+    
+    String emailId = DataUsagePreferencesRepo.getBSLEmailIdByEcpd(request.getEcpdId());
+    
+    if (!CommonUtil.isEmpty(emailId)) {
+        String emailDomainForEcpd = CommonUtil.getEmailDomain(emailId);
+        
+        request.getDataUsagePreferences().getEmail().stream()
+            .filter(email -> !CommonUtil.isEmpty(email))
+            .forEach(email -> {
+                String domain = CommonUtil.getEmailDomain(email);
+                
+                if (domain.equals(emailDomainForEcpd)) {
+                    validatedEmails.addValidEmail(email);
+                } else {
+                    validatedEmails.addInvalidEmail(email);
+                }
+            });
+    }
+    
+    return validatedEmails;
+}
+
+public static String getEmailDomain(String email) {
+    if (!CommonUtil.isEmpty(email)) {
+        int atIndex = email.indexOf('@');
+        
+        if (atIndex != -1) {
+            return email.substring(atIndex + 1);
+        }
+    }
+    
+    return null;
+}
